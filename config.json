@@ -1,5 +1,6 @@
 {
   "lichess_token": "",
+  "lichess_player": "",
   "twitch_client_id": "",
   "twitch_client_secret": "",
   "twitch_oauth": "",

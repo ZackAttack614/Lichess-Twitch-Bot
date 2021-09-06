@@ -2,10 +2,14 @@ import requests
 import json
 import twitch
 import random
+import re
+from get_position import filter_move_suggestions
 
 with open('config.json') as fin:
   config = json.load(fin)
 
+move_pattern = '^([NBRQK])?([A-H])?([1-8])?[X]?([A-H][1-8])(=[NBRQK])?(\+|#)?$|^O-O(-O)?$'
+pattern = re.compile(move_pattern)
 helix = twitch.Helix(config.get('twitch_client_id'), config.get('twitch_client_secret'))
 lichess_token = config.get('lichess_token')
 
@@ -72,6 +76,11 @@ def handle_message(message: twitch.chat.Message) -> None:
       num_drawings = int(num_drawings)
       winners = draw(tournament_id, num_drawings)
       message.chat.send(f'Drawing winners are: {", ".join(winners)}')
+  else:
+    if any([pattern.match(word) for word in message.text.upper().split()]):
+      if filter_move_suggestions(config.get('lichess_player'), message.text):
+        message.chat.send(f"/timeout {message.user.display_name} 10")
+        message.chat.send(f'{message.user.display_name} no move suggestions during games!')
 
 def main():
   chat = twitch.Chat(channel=f'#{config.get("twitch_channel")}',
